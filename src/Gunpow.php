@@ -34,7 +34,7 @@ class Gunpow implements IGameOperator
     public function recharge($user, $server, $order, $package, $params = null)
     {
         $code = $package->code;
-        if (!isset($params['roleid']))
+        if (empty($params) || !isset($params['roleid']))
             throw new Exception('GunPow Role/Character ID must specified.');
         $rechargeParams = [
             'roleid' => $params['roleid'],
@@ -80,7 +80,7 @@ class Gunpow implements IGameOperator
 
     public function sentItem($user, $server, $order, $itemId, $itemCount, $params = null)
     {
-        if (!isset($params['roleid']))
+        if (empty($params) || !isset($params['roleid']))
             throw new Exception('GunPow Role/Character ID must specified.');
         $uid = $user->getAuthIdentifier();
         $sendParams = [
@@ -108,6 +108,32 @@ class Gunpow implements IGameOperator
         }
         return true;
     }
+    
+    public function order($user, $server, $package, $params = null)
+    {
+        if (empty($params) || !isset($params['roleid']))
+            throw new Exception('GunPow Role/Character ID must specified.');
+        $params = [
+            'role' => $params['roleid'],
+            'svid' => $server->name,
+            'product' => $package,
+        ];
+        $url = $server->operate_uri . '/order.php?' . http_build_query($params);
+        Log::debug("Gunpow query url:" . $url);
+        $response = CurlHelper::factory($url)->exec();
+        if ($response['data'] === false)
+        {
+            Log::error("Gunpow order exception. Returned content: " . $response['content']);
+            throw new Exception("Gunpow order error 1.");
+        }
+        if ($response['data']['status'] != 0)
+        {
+            Log::error("Gunpow order error. Code=" . $response['data']['status']);
+            throw new Exception("Gunpow order error 2.");
+        }
+        return $response['data']['order'];
+    }
+
 
     
 }
