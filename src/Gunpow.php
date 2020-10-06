@@ -2,7 +2,7 @@
 
 namespace Hanoivip\Ddd2Ops;
 
-use Hanoivip\Game\Contracts\IGameOperator;
+use Hanoivip\GameContracts\Contracts\IGameOperator;
 use Illuminate\Support\Facades\Log;
 use CurlHelper;
 use Exception;
