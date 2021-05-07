@@ -4,7 +4,7 @@ namespace Hanoivip\Ddd2Ops;
 
 use Hanoivip\GameContracts\Contracts\IGameOperator;
 use Illuminate\Support\Facades\Log;
-use CurlHelper;
+use Mervick\CurlHelper;
 use Exception;
 
 class Gunpow implements IGameOperator
@@ -133,6 +133,9 @@ class Gunpow implements IGameOperator
         }
         return $response['data']['order'];
     }
+    public function useCode($user, $server, $code, $params)
+    {}
+
 
 
     
