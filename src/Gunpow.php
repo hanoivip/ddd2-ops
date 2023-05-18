@@ -11,51 +11,58 @@ class Gunpow implements IGameOperator
 {
     public function characters($user, $server)
     {
+        $url = sprintf("http://%s/SearchPlayerServlet", $server->operate_uri);
         $params = [
-            'userId' => $user->getAuthIdentifier(),
-            'svname' => $server->name
+            'accountId' => $user->getAuthIdentifier(),
         ];
-        $url = $server->operate_uri . '/role.php?' . http_build_query($params);
-        Log::debug("Gunpow query url:" . $url);
-        $response = CurlHelper::factory($url)->exec();
+        $response = CurlHelper::factory($url)
+        ->setPostParams($params)
+        ->exec();
         if ($response['data'] === false)
         {
-            Log::error("Gunpow recharge server exception. Returned content: " . $response['content']);
+            Log::error("Gunpow search player exception. Returned content: " . $response['content']);
             throw new Exception("Gunpow query roles error 1.");
         }
-        if ($response['data']['status'] != 0)
+        $chars = [];
+        foreach ($response['data'] as $char)
         {
-            Log::error("Gunpow query roles error. Code=" . $response['data']['status']);
-            throw new Exception("Gunpow query roles error 2.");
+            $chars[$char['RoleId']] = json_decode('"'.$char['PlayerName'].'"');
         }
-        return $response['data']['chars'];
+        return $chars;
     }
-
+    
     public function recharge($user, $server, $order, $package, $params = null)
     {
         $code = $package->code;
         if (empty($params) || !isset($params['roleid']))
+        {
             throw new Exception('GunPow Role/Character ID must specified.');
+        }
+        $gameOrder = $this->order($user, $server, $package, $params);
+        if (empty($gameOrder))
+        {
+            Log::error("Gunpow order failure.");
+            throw new Exception("Gunpow order failure.");
+        }
+        $channel = config('ipd.channel', 0);
+        $channelDesc = config('ipd.channel_desc', '');
+        $rechargeKey = config('ipd.recharge_key', '');
         $rechargeParams = [
-            'roleid' => $params['roleid'],
-            'svname' => $server->name,
-            'package' => $code,
-            'money' => $package->coin
+            'playerId' => $params['roleid'],
+            'orderNum' => $gameOrder,
+            'realAmt' => $package->coin,
+            'channel' => $channel,
+            'cardMedium' => 'web',
+            'message' => $order,
+            'agent' => $channelDesc,
+            'verify' => md5($params['roleid'] . $gameOrder . $rechargeKey),
         ];
-        $rechargeUrl = $server->recharge_uri . '/pay.php?' . http_build_query($rechargeParams);
-        Log::debug("Gunpow dump recharge url request:" . $rechargeUrl);
-        $response = CurlHelper::factory($rechargeUrl)->exec();
-        if ($response['data'] === false)
-        {
-            Log::error("Gunpow recharge server exception. Returned content: " . $response['content']);
-            throw new Exception("Chuyển xu vào game không thành công. Vui lòng liên hệ GM.");
-        }
-        if ($response['data']['status'] != 0)
-        {
-            Log::error("Gunpow recharge server error. Code=" . $response['data']['status']);
-            return false;
-        }
-        return true;
+        Log::debug($order);
+        $url = sprintf("http://%s/callback", $server->operate_uri);
+        $response = CurlHelper::factory($url)
+        ->setPostParams($rechargeParams)
+        ->exec();
+        return $response['content'] == '200';
     }
 
     public function supportMultiChar()
@@ -75,68 +82,41 @@ class Gunpow implements IGameOperator
 
     public function enter($user, $server)
     {
-        throw new Exception('Gunpow web is not supported!');
+        throw new Exception('Gunpow enter is not supported!');
     }
 
     public function sentItem($user, $server, $order, $itemId, $itemCount, $params = null)
     {
-        if (empty($params) || !isset($params['roleid']))
-            throw new Exception('GunPow Role/Character ID must specified.');
-        $uid = $user->getAuthIdentifier();
-        $sendParams = [
-            'userId' => $uid,
-            'roleId' => $params['roleid'],
-            'svname' => $server->name,
-            'itemId' => $itemId,
-            'itemCount' => $itemCount,
-            'order' => $order,
-            'sign' => md5($uid . $params['roleid'] . $server->name . $itemId . $itemCount . $order . config('game.recharegkey')),
-        ];
-        $sendUrl = $server->recharge_uri . '/senditem.php?' . http_build_query($sendParams);
-        Log::debug("Gunpow dump send url:" . $sendUrl);
-        $response = CurlHelper::factory($sendUrl)->exec();
-        if ($response['data'] === false ||
-            $response['status'] != 200)
-        {
-            Log::error("Gunpow send item exception. Returned content: " . $response['content']);
-            throw new Exception("Chuyển đồ vào game không thành công. Vui lòng liên hệ GM.");
-        }
-        if ($response['data']['status'] != 0)
-        {
-            Log::error("Gunpow send item error. Code=" . $response['data']['status']);
-            return false;
-        }
-        return true;
+        throw new Exception('Gunpow sentItem is not supported!');
     }
     
     public function order($user, $server, $package, $params = null)
     {
+        $channel = config('ipd.channel', 0);
+        $channelDesc = config('ipd.channel_desc', '');
         if (empty($params) || !isset($params['roleid']))
             throw new Exception('GunPow Role/Character ID must specified.');
         $params = [
-            'role' => $params['roleid'],
-            'svid' => $server->name,
-            'product' => $package,
+            'playerId' => $params['roleid'],
+            'id' => $package->code,
+            'channelid' => $channel,
+            'paychannel' => $channelDesc,
         ];
-        $url = $server->operate_uri . '/order.php?' . http_build_query($params);
-        Log::debug("Gunpow query url:" . $url);
-        $response = CurlHelper::factory($url)->exec();
+        $url = sprintf("http://%s/OrderServlet", $server->operate_uri);
+        $response = CurlHelper::factory($url)
+        ->setPostParams($params)
+        ->exec();
         if ($response['data'] === false)
         {
             Log::error("Gunpow order exception. Returned content: " . $response['content']);
             throw new Exception("Gunpow order error 1.");
         }
-        if ($response['data']['status'] != 0)
-        {
-            Log::error("Gunpow order error. Code=" . $response['data']['status']);
-            throw new Exception("Gunpow order error 2.");
-        }
-        return $response['data']['order'];
+        return $response['data']['ordernum'];
     }
-    public function useCode($user, $server, $code, $params)
-    {}
-
-
-
     
+    public function useCode($user, $server, $code, $params)
+    {
+        throw new Exception('Gunpow useCode is not implemented!');
+    }
+
 }
