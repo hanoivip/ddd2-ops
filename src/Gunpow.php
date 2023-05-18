@@ -57,7 +57,6 @@ class Gunpow implements IGameOperator
             'agent' => $channelDesc,
             'verify' => md5($params['roleid'] . $gameOrder . $rechargeKey),
         ];
-        Log::debug($order);
         $url = sprintf("http://%s/callback", $server->operate_uri);
         $response = CurlHelper::factory($url)
         ->setPostParams($rechargeParams)
