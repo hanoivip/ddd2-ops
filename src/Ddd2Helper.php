@@ -51,7 +51,6 @@ trait Ddd2Helper
     
     public function recharge($user, $server, $order, $package, $params = null)
     {
-        $code = $package->code;
         if (empty($params) || !isset($params['roleid']))
         {
             throw new Exception('GunPow Role/Character ID must specified.');
@@ -88,11 +87,20 @@ trait Ddd2Helper
     {
         $channel = config('ipd.channel', 0);
         $channelDesc = config('ipd.channel_desc', '');
+        if (gettype($package) == 'string')
+        {
+            $code = $package;
+        }
+        else
+        {
+            $code = $package->code;
+        }
+        Log::debug(print_r($code, true));
         if (empty($params) || !isset($params['roleid']))
             throw new Exception('GunPow Role/Character ID must specified.');
             $params = [
                 'playerId' => $params['roleid'],
-                'id' => $package->code,
+                'id' => $code,
                 'channelid' => $channel,
                 'paychannel' => $channelDesc,
             ];
