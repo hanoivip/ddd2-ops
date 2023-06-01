@@ -95,25 +95,39 @@ trait Ddd2Helper
         {
             $code = $package->code;
         }
-        Log::debug(print_r($code, true));
+        //Log::debug(print_r($code, true));
         if (empty($params) || !isset($params['roleid']))
             throw new Exception('GunPow Role/Character ID must specified.');
-            $params = [
-                'playerId' => $params['roleid'],
-                'id' => $code,
-                'channelid' => $channel,
-                'paychannel' => $channelDesc,
-            ];
-            $url = sprintf("http://%s/OrderServlet", $server->operate_uri);
-            $response = CurlHelper::factory($url)
-            ->setPostParams($params)
-            ->exec();
-            if (empty($response['data']))
-            {
-                Log::error("Gunpow order exception. Returned content: " . $response['content']);
-                throw new Exception("Gunpow order error 1.");
-            }
-            return $response['data']['ordernum'];
+        $params = [
+            'playerId' => $params['roleid'],
+            'id' => $code,
+            'channelid' => $channel,
+            'paychannel' => $channelDesc,
+        ];
+        $url = sprintf("http://%s/OrderServlet", $server->operate_uri);
+        $response = CurlHelper::factory($url)
+        ->setPostParams($params)
+        ->exec();
+        if (empty($response['data']))
+        {
+            Log::error("Gunpow order exception. Returned content: " . $response['content']);
+            throw new Exception("Gunpow order error 1.");
+        }
+        return $response['data']['ordernum'];
+    }
+    
+    public function rank($server, $type)
+    {
+        $url = sprintf("http://%s/RankServlet?type=%s", $server->operate_uri, $type);
+        Log::debug($url);
+        $response = CurlHelper::factory($url)->exec();
+        if (empty($response['data']))
+        {
+            Log::error("Gunpow order exception. Returned content: " . $response['content']);
+            throw new Exception("Gunpow rank list error.");
+        }
+        $list = $response['data']['list'];
+        return $list;
     }
     
 }

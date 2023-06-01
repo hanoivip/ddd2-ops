@@ -21,11 +21,6 @@ class Gunpow implements IGameOperator
         return 0;
     }
 
-    public function rank($server)
-    {
-        return [];
-    }
-
     public function enter($user, $server)
     {
         throw new Exception('Gunpow enter is not supported!');
