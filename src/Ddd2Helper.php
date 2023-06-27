@@ -119,7 +119,7 @@ trait Ddd2Helper
     public function rank($server, $type)
     {
         $url = sprintf("http://%s/RankServlet?type=%s", $server->operate_uri, $type);
-        Log::debug($url);
+        //Log::debug($url);
         $response = CurlHelper::factory($url)->exec();
         if (empty($response['data']))
         {
@@ -130,4 +130,22 @@ trait Ddd2Helper
         return $list;
     }
     
+    public function broadcast($server, $message)
+    {
+        $url = sprintf("http://%s/MessageServlet", $server->operate_uri);
+        $key = config('ipd.messaging_key', '');
+        $params = [
+            'message' => $message,
+            'sign' => md5($key . $message),
+        ];
+        $response = CurlHelper::factory($url)
+        ->setPostParams($params)
+        ->exec();
+        if (empty($response['data']))
+        {
+            Log::error("Gunpow broadcast exception. Returned content: " . $response['content']);
+            throw new Exception("Gunpow broadcast error.");
+        }
+        return $response['data']['status'] == true;
+    }
 }

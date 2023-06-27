@@ -3,27 +3,15 @@
 namespace Hanoivip\Ddd2Ops;
 
 use Hanoivip\GameContracts\Contracts\IGameOperator;
-use Illuminate\Support\Facades\Log;
-use Mervick\CurlHelper;
 use Exception;
 
 class Gunpow implements IGameOperator
 {
     use Ddd2Helper;
 
-    public function supportMultiChar()
-    {
-        return true;
-    }
-
     public function online($server)
     {
         return 0;
-    }
-
-    public function enter($user, $server)
-    {
-        throw new Exception('Gunpow enter is not supported!');
     }
 
     public function sentItem($user, $server, $order, $itemId, $itemCount, $params = null)
@@ -40,5 +28,5 @@ class Gunpow implements IGameOperator
     {
         return $user->getAuthIdentifier();
     }
-
+    
 }
