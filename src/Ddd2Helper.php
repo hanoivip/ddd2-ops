@@ -148,4 +148,26 @@ trait Ddd2Helper
         }
         return $response['data']['status'] == true;
     }
+    
+    public function transfer($oldId, $newId)
+    {
+        $ipd = config('ipd.uri', '');
+        $secret = config('ipd.secret', '');
+        $url = sprintf("http://%s/transferAccount/TransferAccountServlet", $ipd);
+        $params = [
+            'oldId' => $oldId,
+            'newId' => $newId,
+            'sign' => md5($secret . $oldId. $newId . $secret),
+        ];
+        $response = CurlHelper::factory($url)
+        ->setPostParams($params)
+        ->exec();
+        if ($response['status'] != 200)
+        {
+            Log::error("Gunpow transfer error. Returned status: " . $response['status']);
+            throw new Exception("Gunpow transfer error. You should check httpwhitelist.txt");
+        }
+        Log::error("Gunpow transfer " . $response['content']);
+        return $response['content'] == 200;
+    }
 }
