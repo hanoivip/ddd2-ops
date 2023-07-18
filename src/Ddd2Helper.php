@@ -113,6 +113,11 @@ trait Ddd2Helper
             Log::error("Gunpow order exception. Returned content: " . $response['content']);
             throw new Exception("Gunpow order error 1.");
         }
+        if (empty($response['data']['status']))
+        {
+            Log::error("Gunpow order exception. Status fail");
+            throw new Exception("Gunpow order error 2.");
+        }
         return $response['data']['ordernum'];
     }
     
