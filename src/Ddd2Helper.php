@@ -49,15 +49,13 @@ trait Ddd2Helper
         return $chars;
     }
     
-    public function recharge($user, $server, $order, $package, $params = null)
+    public function buyPackage($user, $server, $order, $package, $role)
     {
-        if (empty($params) || !isset($params['roleid']))
+        if (empty($role))
         {
             throw new Exception('GunPow Role/Character ID must specified.');
         }
-        //TODO: check $order is already game order?
-        //Log::debug(print_r($package, true));
-        $gameOrder = $this->order($user, $server, $package, $params);
+        $gameOrder = $this->order($user, $server, $package, $role);
         if (empty($gameOrder))
         {
             Log::error("Gunpow order failure.");
@@ -67,14 +65,14 @@ trait Ddd2Helper
         $channelDesc = config('ipd.channel_desc', '');
         $rechargeKey = config('ipd.recharge_key', '');
         $rechargeParams = [
-            'playerId' => $params['roleid'],
+            'playerId' => $role,
             'orderNum' => $gameOrder,
-            'realAmt' => $package->coin,
+            'realAmt' => 0,
             'channel' => $channel,
             'cardMedium' => 'web',
             'message' => $order,
             'agent' => $channelDesc,
-            'verify' => md5($params['roleid'] . $gameOrder . $rechargeKey),
+            'verify' => md5($role . $gameOrder . $rechargeKey),
         ];
         $url = sprintf("http://%s/callback", $server->operate_uri);
         $response = CurlHelper::factory($url)
@@ -83,24 +81,48 @@ trait Ddd2Helper
         return $response['content'] == '200';
     }
     
-    public function order($user, $server, $package, $params = null)
+    public function buyByMoney($user, $server, $order, $money, $role)
+    {
+        if (empty($role))
+        {
+            throw new Exception('GunPow Role/Character ID must specified.');
+        }
+        $payCode = config('ddd2.defPkgCode', '');
+        $gameOrder = $this->order($user, $server, $payCode, $role);
+        if (empty($gameOrder))
+        {
+            Log::error("Gunpow order failure.");
+            throw new Exception("Gunpow order failure.");
+        }
+        $channel = 0;
+        $channelDesc = config('ipd.channel_desc', '');
+        $rechargeKey = config('ipd.recharge_key', '');
+        $rechargeParams = [
+            'playerId' => $role,
+            'orderNum' => $gameOrder,
+            'realAmt' => $money,
+            'channel' => $channel,
+            'cardMedium' => 'web',
+            'message' => $order,
+            'agent' => $channelDesc,
+            'verify' => md5($role . $gameOrder . $rechargeKey),
+        ];
+        $url = sprintf("http://%s/callback", $server->operate_uri);
+        $response = CurlHelper::factory($url)
+        ->setPostParams($rechargeParams)
+        ->exec();
+        return $response['content'] == '200';
+    }
+    
+    public function order($user, $server, $package, $role)
     {
         $channel = config('ipd.channel', 0);
         $channelDesc = config('ipd.channel_desc', '');
-        if (gettype($package) == 'string')
-        {
-            $code = $package;
-        }
-        else
-        {
-            $code = $package->code;
-        }
-        //Log::debug(print_r($code, true));
-        if (empty($params) || !isset($params['roleid']))
+        if (empty($role))
             throw new Exception('GunPow Role/Character ID must specified.');
         $params = [
-            'playerId' => $params['roleid'],
-            'id' => $code,
+            'playerId' => $role,
+            'id' => $package,
             'channelid' => $channel,
             'paychannel' => $channelDesc,
         ];

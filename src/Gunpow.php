@@ -11,15 +11,15 @@ class Gunpow implements IGameOperator
 
     public function online($server)
     {
-        return 0;
+        throw new Exception('Gunpow online is not supported!');
     }
 
-    public function sentItem($user, $server, $order, $itemId, $itemCount, $params = null)
+    public function sentItem($user, $server, $order, $itemId, $itemCount, $role)
     {
         throw new Exception('Gunpow sentItem is not supported!');
     }
     
-    public function useCode($user, $server, $code, $params)
+    public function useCode($user, $server, $code, $role)
     {
         throw new Exception('Gunpow useCode is not implemented!');
     }
