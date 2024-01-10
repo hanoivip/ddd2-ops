@@ -87,7 +87,7 @@ trait Ddd2Helper
         {
             throw new Exception('GunPow Role/Character ID must specified.');
         }
-        $payCode = config('ddd2.defPkgCode', '');
+        $payCode = config('ddd2.defPkgCode', '');// for getting order?
         $gameOrder = $this->order($user, $server, $payCode, $role);
         if (empty($gameOrder))
         {
@@ -196,5 +196,10 @@ trait Ddd2Helper
         }
         Log::error("Gunpow transfer " . $response['content']);
         return $response['content'] == 200;
+    }
+    
+    public function orderNotify($user, $order)
+    {
+        
     }
 }

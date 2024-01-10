@@ -28,5 +28,6 @@ class Gunpow implements IGameOperator
     {
         return $user->getAuthIdentifier();
     }
+
     
 }
