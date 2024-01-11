@@ -67,7 +67,7 @@ trait Ddd2Helper
         $rechargeParams = [
             'playerId' => $role,
             'orderNum' => $gameOrder,
-            'realAmt' => 0,
+            'realAmt' => 1,//LOL 0 will be bad
             'channel' => $channel,
             'cardMedium' => 'web',
             'message' => $order,
