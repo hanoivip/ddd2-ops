@@ -3,7 +3,7 @@
 namespace Hanoivip\Ddd2Ops;
 
 use Illuminate\Support\Facades\Log;
-use Mervick\CurlHelper;
+use Hanoivip\CurlHelper;
 use Exception;
 
 trait Ddd2Helper 
@@ -202,4 +202,7 @@ trait Ddd2Helper
     {
         
     }
+    
+    public function orderDetail($user, $server, $order)
+    {}
 }

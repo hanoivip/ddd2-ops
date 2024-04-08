@@ -6,7 +6,7 @@
 		"php" : ">=7.0.0",
 		"fideloper/proxy" : "~4.0",
 		"laravel/framework" : ">=5.5",
-		"mervick/curl-helper" : "^2.2"
+		"hanoivip/curl-helper" : "dev-main"
 	},
 	"autoload" : {
 		"psr-4" : {
